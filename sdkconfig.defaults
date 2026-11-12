@@ -76,3 +76,6 @@ CONFIG_LV_USE_WIN=n
 
 CONFIG_LV_BUILD_EXAMPLES=n
 CONFIG_LV_BUILD_DEMOS=n
+
+# open-charm ADR-0004: 64K coredump carve (partitions/v2/16m.csv) — flash-backed crash forensics
+CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH=y
