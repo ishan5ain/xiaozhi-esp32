@@ -48,9 +48,17 @@ void BackendStatus::PollLoop() {
     constexpr int kIntervalMs = 5000;
     int failures = 0;
     while (true) {
+        // The network interface does not exist until Board::StartNetwork() has run.
+        // Dereferencing it early is a null-pointer crash (measured 2026-11-12).
+        NetworkInterface* network = Board::GetInstance().GetNetwork();
+        if (network == nullptr) {
+            vTaskDelay(pdMS_TO_TICKS(kIntervalMs));
+            continue;
+        }
+
         bool ok = false;
         float load = -1.0f;
-        auto http = Board::GetInstance().GetNetwork()->CreateHttp(0);
+        auto http = network->CreateHttp(0);
         if (http != nullptr) {
             http->SetTimeout(2000);
             http->SetHeader("Accept", "application/json");

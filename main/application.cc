@@ -116,9 +116,6 @@ void Application::Initialize() {
     // Start the clock timer to update the status bar
     esp_timer_start_periodic(clock_timer_handle_, 1000000);
 
-    // open-charm: live backend load in the status bar (S1 vertical)
-    opencharm::BackendStatus::GetInstance().Start();
-
     // Add MCP common tools (only once during initialization)
     auto& mcp_server = McpServer::GetInstance();
     mcp_server.AddCommonTools();
@@ -191,6 +188,12 @@ void Application::Initialize() {
 
     // Start network asynchronously
     board.StartNetwork();
+
+    // open-charm: live backend load in the status bar (S1 vertical).
+    // MUST start after StartNetwork(): the polling task calls GetNetwork()->CreateHttp(),
+    // which crashes if the network object does not exist yet (measured 2026-11-12 —
+    // starting this before StartNetwork() put the device in a boot loop).
+    opencharm::BackendStatus::GetInstance().Start();
 
     // Update the status bar immediately to show the network state
     display->UpdateStatusBar(true);
