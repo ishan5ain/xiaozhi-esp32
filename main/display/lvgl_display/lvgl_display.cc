@@ -8,6 +8,7 @@
 #include "application.h"
 #include "assets/lang_config.h"
 #include "audio_codec.h"
+#include "backend_status.h"
 #include "board.h"
 #include "dynamic_glyph_cache.h"
 #include "jpg/image_to_jpeg.h"
@@ -224,7 +225,14 @@ void LvglDisplay::UpdateStatusBar(bool update_all) {
                 last_displayed_clock_min_ = cur_min;
                 char time_str[16];
                 strftime(time_str, sizeof(time_str), "%H:%M", tm_now);
-                SetStatus(time_str);
+                // open-charm: append live backend load (S1 vertical) when idle.
+                std::string status = time_str;
+                const std::string backend = opencharm::BackendStatus::GetInstance().GetSummary();
+                if (!backend.empty()) {
+                    status += " · ";
+                    status += backend;
+                }
+                SetStatus(status.c_str());
             }
         } else {
             ESP_LOGW(TAG, "System time not set (tm_year=%d)", tm_now->tm_year);

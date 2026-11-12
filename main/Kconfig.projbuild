@@ -9,6 +9,14 @@ config OTA_URL
     help
         The application will access this URL to check for new firmwares and server address.
 
+config OPENCHARM_STATUS_URL
+    string "open-charm backend status URL"
+    default "http://192.168.1.89:8002/v1/status"
+    help
+        URL polled by the backend status widget (S1 vertical: live rpi5 load on the
+        status bar). Must return JSON {"load": <float>}. The open-charm FastAPI on
+        rpi5 serves this at /v1/status.
+
 choice
     prompt "Flash Assets"
     default FLASH_DEFAULT_ASSETS if !USE_EMOTE_MESSAGE_STYLE

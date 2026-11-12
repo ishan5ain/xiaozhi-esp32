@@ -2,6 +2,7 @@
 #include "assets.h"
 #include "assets/lang_config.h"
 #include "audio_codec.h"
+#include "backend_status.h"
 #include "board.h"
 #include "cjson_utils.h"
 #include "display.h"
@@ -114,6 +115,9 @@ void Application::Initialize() {
 
     // Start the clock timer to update the status bar
     esp_timer_start_periodic(clock_timer_handle_, 1000000);
+
+    // open-charm: live backend load in the status bar (S1 vertical)
+    opencharm::BackendStatus::GetInstance().Start();
 
     // Add MCP common tools (only once during initialization)
     auto& mcp_server = McpServer::GetInstance();
