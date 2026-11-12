@@ -5,7 +5,7 @@ config OTA_URL
     # open-charm (D3, D7): repointed from vendor control plane (api.tenclass.net) to our
     # own gateway's bootstrap endpoint. The gateway (xiaozhi-esp32-server fork on rpi5)
     # serves the same /xiaozhi/ota/ response shape. NVS override (wifi/ota_url) still wins.
-    default "http://192.168.1.89:8001/xiaozhi/ota/"
+    default "http://192.168.1.89:8003/xiaozhi/ota/"
     help
         The application will access this URL to check for new firmwares and server address.
 
