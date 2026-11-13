@@ -24,8 +24,12 @@ void BackendStatus::Start() {
         return;
     }
     started_ = true;
-    xTaskCreate([](void*) { GetInstance().PollLoop(); }, "backend_status", 8192, nullptr, 5,
-                nullptr);
+    BaseType_t created = xTaskCreate([](void*) { GetInstance().PollLoop(); }, "backend_status", 8192,
+                                     nullptr, 5, nullptr);
+    if (created != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create backend_status task");
+        started_ = false;
+    }
 }
 
 std::string BackendStatus::GetSummary() const {
@@ -48,8 +52,10 @@ void BackendStatus::PollLoop() {
     constexpr int kIntervalMs = 5000;
     int failures = 0;
     while (true) {
-        // The network interface does not exist until Board::StartNetwork() has run.
-        // Dereferencing it early is a null-pointer crash (measured 2026-11-12).
+        // GetNetwork() returns a static EspNetwork (never null), but its internals are
+        // not ready until Board::StartNetwork() has run — calling CreateHttp() earlier
+        // crashed the device (boot loop, 2026-11-12). The guard is defensive; the real
+        // fix is the Start() placement after StartNetwork() in Application::Initialize().
         NetworkInterface* network = Board::GetInstance().GetNetwork();
         if (network == nullptr) {
             vTaskDelay(pdMS_TO_TICKS(kIntervalMs));

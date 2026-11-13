@@ -221,17 +221,20 @@ void LvglDisplay::UpdateStatusBar(bool update_all) {
         struct tm* tm_now = localtime(&now);
         if (tm_now->tm_year >= 2025 - 1900) {
             int cur_min = tm_now->tm_hour * 60 + tm_now->tm_min;
-            if (update_all || cur_min != last_displayed_clock_min_) {
+            char time_str[16];
+            strftime(time_str, sizeof(time_str), "%H:%M", tm_now);
+            // open-charm: append live backend load (S1 vertical) when idle.
+            std::string status = time_str;
+            const std::string backend = opencharm::BackendStatus::GetInstance().GetSummary();
+            if (!backend.empty()) {
+                status += " · ";
+                status += backend;
+            }
+            // Re-render on clock minute change OR when the backend summary changes
+            // (the 5 s poll must be visible on screen within one poll, not one minute).
+            if (update_all || cur_min != last_displayed_clock_min_ || status != last_status_) {
                 last_displayed_clock_min_ = cur_min;
-                char time_str[16];
-                strftime(time_str, sizeof(time_str), "%H:%M", tm_now);
-                // open-charm: append live backend load (S1 vertical) when idle.
-                std::string status = time_str;
-                const std::string backend = opencharm::BackendStatus::GetInstance().GetSummary();
-                if (!backend.empty()) {
-                    status += " · ";
-                    status += backend;
-                }
+                last_status_ = status;
                 SetStatus(status.c_str());
             }
         } else {
@@ -240,6 +243,7 @@ void LvglDisplay::UpdateStatusBar(bool update_all) {
     } else {
         // Reset so the clock re-appears immediately when idle resumes.
         last_displayed_clock_min_ = -1;
+        last_status_.clear();
     }
 
     esp_pm_lock_acquire(pm_lock_);
